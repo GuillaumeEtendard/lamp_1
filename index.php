@@ -1,5 +1,10 @@
 <?php
+require_once("config/dbconf.php");
 session_start();
+if(!isset($_SESSION['user'])){
+    header("Location: /login.php");
+    exit;
+}
 if(isset($_POST['reset_best'])){
     unset($_SESSION['best_score']);
 }
@@ -28,6 +33,19 @@ if( !isset($_POST['guess'])
             || $_SESSION['best_score'] > $_SESSION['score']){
             $_SESSION['best_score'] = $_SESSION['score'];
         }
+
+        global $config;
+        $pdo = new PDO($config['host'], $config['user'], $config['password']);
+        $stmt = $pdo->prepare("UPDATE users SET best_score =:best_score
+                          WHERE login = :login"
+        );
+        $stmt->bindParam("best_score",$_SESSION['best_score']);
+        $stmt->bindParam("login",$_SESSION['user']);
+
+        $stmt->execute();
+        $result = $stmt->fetch();
+
+
         unset($_SESSION['choice']);
     }
 }
@@ -42,7 +60,7 @@ if( !isset($_POST['guess'])
 
 <?php echo $response;?> <br>
 Nombre de coup : <?php echo $_SESSION['score']; ?><br>
-<em>[Meilleur score :
+<em>[Meilleur score pour <?php echo $_SESSION['user'];?>:
     <?php
     echo !isset($_SESSION['best_score'])
         ? "Pas de meilleur score"
@@ -55,6 +73,11 @@ Nombre de coup : <?php echo $_SESSION['score']; ?><br>
     <input type="submit" name="reset_best" value="reset best">
 </form>
 <em>(La réponse est <?php echo $choice?>)</em>
+
+
+<form method="POST" action="login.php">
+    <input type="submit" name="logout" value="Logout">
+</form>
 
 </body>
 </html>

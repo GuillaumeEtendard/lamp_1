@@ -41,12 +41,11 @@ if( !isset($_POST['guess'])
         );
         $stmt->bindParam("best_score",$_SESSION['best_score']);
         $stmt->bindParam("login",$_SESSION['user']);
-
         $stmt->execute();
-        $result = $stmt->fetch();
 
 
         unset($_SESSION['choice']);
+
     }
 }
 ?>
@@ -57,7 +56,23 @@ if( !isset($_POST['guess'])
     <title>Des papiers dans un bol </title>
 </head>
 <body>
+<?php
+global $config;
+$pdo = new PDO($config['host'], $config['user'], $config['password']);
+$leaderboard = $pdo->prepare("SELECT login, best_score FROM users ORDER BY best_score LIMIT 0,1000");
+$leaderboard->execute();
 
+echo "<h3>Leaderboard</h3><table border=1px>";
+echo "<tr><th>User</th><th>Score</th></tr>";
+while ($leaderboardResult = $leaderboard->fetch())
+{
+    echo "<tr><td>".$leaderboardResult['login']."</td>";
+    echo"<td>".$leaderboardResult['best_score']."</td></tr>";
+}
+
+echo "</table><br><br>"
+
+?>
 <?php echo $response;?> <br>
 Nombre de coup : <?php echo $_SESSION['score']; ?><br>
 <em>[Meilleur score pour <?php echo $_SESSION['user'];?>:
